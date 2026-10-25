@@ -1,0 +1,103 @@
+# Methods used by Dunyo
+
+This file summarizes the statistical, machine-learning and agent methods used by Dunyo, with the original sources. Reference numbers in square brackets point to docs/REFERENCES.md. Each paragraph describes what the method is and how Dunyo uses it.
+
+## Masked modeling
+
+BERT (Devlin et al., 2019) introduced masked language modeling: a fraction of input tokens (15 percent in the original paper) is hidden and a bidirectional Transformer is trained to predict them from context [13]. The idea of learning by reconstructing hidden parts of the input carries over to time series.
+
+Masked Autoencoders (He et al., 2022) mask a large fraction of image patches (75 percent works well), encode only the visible patches with a Vision Transformer, and reconstruct the missing pixels with a lightweight decoder [14]. High masking ratios force the model to learn global structure rather than copy local detail.
+
+PatchTST (Nie et al., 2023) splits each time series into patches that act as Transformer tokens and treats each channel independently; it also supports self-supervised pre-training by masking patches and reconstructing them [15]. Dunyo uses a PatchTST-style masked patch model on daily weather variables.
+
+Dunyo anomaly score from masked modeling: mask a day or a window, ask the model to reconstruct it from the surrounding context, and treat a large reconstruction error relative to the error distribution on normal periods as evidence of an anomaly. The score is calibrated on held-out normal data before being used.
+
+## GAN-based time-series anomaly detection
+
+TadGAN (Geiger et al., 2020) trains a generative adversarial network with cycle-consistency on time-series windows and combines reconstruction error with the critic's score to flag anomalies [16]. It was evaluated on public benchmarks from NASA, Yahoo and the Numenta Anomaly Benchmark.
+
+GANomaly (Akcay et al., 2018) uses an encoder-decoder-encoder generator trained only on normal data; the anomaly score is the distance between the latent code of the input and the latent code of its reconstruction [17]. Inputs unlike the training distribution reconstruct poorly and score high.
+
+Dunyo uses a GAN-based detector as a second, independent opinion beside the masked model. An event is called robust only when both detectors agree, which reduces false alarms from the quirks of a single model.
+
+## Parameter-efficient fine-tuning: LoRA and adapters
+
+LoRA (Hu et al., 2021) freezes the pretrained weight matrix W0 and learns a low-rank update ΔW = BA with rank r much smaller than the layer width; for GPT-3 175B it reduced trainable parameters by about 10,000 times with comparable quality [18]. The low-rank update can be merged into W0 so inference cost does not increase.
+
+Adapters (Houlsby et al., 2019) insert small bottleneck layers inside each Transformer block and train only those, keeping the original network frozen; on GLUE they came within 0.4 percent of full fine-tuning while adding about 3.6 percent parameters per task [19].
+
+Dunyo uses LoRA or adapters to specialize a shared base model to each city or climate zone. This keeps one base model plus many small per-region modules, which is cheaper to train, store and audit than many full models.
+
+## Graph ranking: PageRank and random walk with restart
+
+PageRank (Brin and Page, 1998) scores nodes of a graph by the stationary distribution of a random surfer who follows links with probability d (0.85 in the original paper) and jumps to a random node otherwise [20]. Nodes linked from many important nodes rank highly.
+
+Random walk with restart (RWR) is a personalized variant: at each step the walker returns to a chosen seed node with restart probability c, so the stationary scores measure relevance to that seed. Tong, Faloutsos and Pan (2006) gave fast approximate algorithms and applications of RWR [21].
+
+Dunyo builds an evidence graph whose nodes are stations, variables, days, detected anomalies, external events (for example NASA EONET) and documents. It runs RWR seeded on the anomaly under investigation to rank which evidence and possible drivers are most connected to it, and PageRank to find globally central hubs.
+
+## Bayesian surprise
+
+Bayesian surprise (Itti and Baldi) measures how much an observation changes beliefs: it is the Kullback-Leibler divergence between the posterior and prior distributions over models, KL(posterior || prior) [22]. Itti and Baldi showed that Bayesian surprise predicts where humans direct their attention.
+
+Surprise differs from improbability: a rare observation that does not change beliefs (because it was already expected to be noisy) has low surprise. Dunyo ranks candidate anomalies by Bayesian surprise of a conjugate model of the local climatology, so that investigation effort goes to observations that truly change the picture.
+
+## Extreme value theory: GEV and GPD return levels
+
+Extreme value theory models the tail of a distribution. Block maxima (for example annual maximum daily rainfall) are modelled with the generalized extreme value (GEV) distribution G(z) = exp{-[1 + ξ(z - μ)/σ]^(-1/ξ)} with location μ, scale σ > 0 and shape ξ [23].
+
+The T-year return level is the value exceeded on average once every T years. For the GEV with p = 1/T it is z_p = μ - (σ/ξ)[1 - (-log(1 - p))^(-ξ)] when ξ ≠ 0, and z_p = μ - σ log(-log(1 - p)) when ξ = 0 (Gumbel case) [23].
+
+The peaks-over-threshold method fits the generalized Pareto distribution (GPD) to exceedances of a high threshold u, with scale σ and shape ξ; the level exceeded once every m observations is x_m = u + (σ/ξ)[(m ζ_u)^ξ - 1], where ζ_u is the probability of exceeding u [23]. GPD uses more data than block maxima when extremes are clustered.
+
+Dunyo reports return periods with confidence intervals (profile likelihood or bootstrap) and warns when the record is short. Because the climate is warming, stationary return periods can be biased; the agent states whether a stationary or a covariate-dependent (non-stationary) model was used.
+
+## Shrinkage: James-Stein and empirical Bayes
+
+The James-Stein estimator shrinks several individual estimates toward a common value and, for three or more means under squared-error loss, has lower total risk than estimating each mean separately. Efron and Morris (1973) explained this shrinkage as an empirical Bayes procedure in which the prior is estimated from the data themselves [24].
+
+A standard form shrinks each station estimate y_i toward the regional mean ȳ: θ_i = ȳ + (1 - B)(y_i - ȳ), where the shrinkage factor B grows as the between-station spread becomes small relative to the noise variance [24]. Dunyo shrinks noisy single-station anomaly estimates toward the regional estimate.
+
+## BLUE and the Gauss-Markov theorem
+
+The Gauss-Markov theorem states that in a linear model with zero-mean, uncorrelated, equal-variance errors, ordinary least squares is the best linear unbiased estimator (BLUE): no other linear unbiased estimator has smaller variance. With known correlated or unequal error variances, generalized least squares is BLUE.
+
+Dunyo fuses several unbiased estimates of the same quantity (for example ERA5 via Open-Meteo and NASA POWER) by inverse-variance weighting: weights proportional to 1/σ_i², giving a combined variance of 1/Σ(1/σ_i²) for independent errors. This is the BLUE for that case, and the combined uncertainty is reported with the estimate.
+
+## Decision rules: minimax and LINEX loss
+
+A minimax decision rule chooses the action whose worst-case expected loss over the plausible states of the world is smallest. Dunyo uses minimax reasoning when model evidence is ambiguous, choosing the alert level that limits the worst plausible harm rather than the one that is best on average.
+
+The LINEX (linear-exponential) loss, introduced by Varian (1975) and developed by Zellner (1986), is L(Δ) = b[exp(aΔ) - aΔ - 1] with Δ = estimate - true value and b > 0 [25][26]. It is asymmetric: errors in one direction are penalized exponentially and in the other almost linearly, with the sign of a choosing which direction is costly.
+
+Under LINEX loss the Bayes estimate is θ = -(1/a) log E[exp(-aθ) | data]; for a normal posterior with mean m and variance s² this equals m - a s²/2 [26]. Dunyo uses a < 0 for hazard magnitude, so that the reported estimate is shifted upward when uncertainty is large, because under-warning is costlier than over-warning.
+
+## LLM agent methods: ReAct, memory and reflection
+
+ReAct (Yao et al., 2023) prompts a language model to interleave reasoning traces ("thoughts") with actions (tool calls) and observations, so the model can plan, gather information and revise its plan [27]. Dunyo's investigator agent follows a ReAct loop: hypothesize a driver, call a data tool, read the result, update the hypothesis.
+
+Generative Agents (Park et al., 2023) store experiences in a memory stream, retrieve memories by a combination of recency, importance and relevance, and periodically synthesize higher-level "reflections" [28]. Dunyo stores past investigations as memories and writes reflections such as recurring false-alarm patterns for a station.
+
+MemGPT (Packer et al., 2023) treats the LLM context window like main memory in an operating system and pages information to and from external storage through function calls, giving the illusion of a much larger context [29]. Dunyo pages long station histories and past reports in and out of context instead of loading everything at once.
+
+## Retrieval: GraphRAG
+
+GraphRAG (Edge et al., 2024, Microsoft) uses an LLM to extract an entity-relation graph from a document collection, partitions it into communities (with the Leiden algorithm), pre-generates summaries of each community, and answers global questions by combining community summaries [30]. It improves answers to broad "sensemaking" questions over a whole corpus.
+
+Dunyo combines plain chunk retrieval over this knowledge base with a GraphRAG-style index over past reports, so the agent can answer both narrow questions ("what is WSDI?") and global ones ("which cities had recurring stagnation alerts this winter?").
+
+## Machine-learning weather models
+
+GraphCast (Lam et al., 2023, Science) is a graph neural network trained on about four decades of ERA5 reanalysis that produces global 10-day forecasts at 0.25° resolution in 6-hour steps; it outperformed ECMWF's HRES deterministic forecast on more than 90 percent of 1,380 verification targets [31].
+
+Pangu-Weather (Bi et al., 2023, Nature) uses a 3D Earth-specific Transformer trained on ERA5 to produce global medium-range forecasts at 0.25° resolution, with deterministic skill comparable to or better than the ECMWF operational IFS at a small fraction of the compute cost [32].
+
+ClimaX (Nguyen et al., 2023, ICML) is a Transformer foundation model for weather and climate that handles heterogeneous input variables through variable-specific tokenization and aggregation; it is pre-trained on CMIP6-derived climate model data and fine-tuned for tasks such as forecasting and downscaling [33].
+
+Dunyo does not run these models itself. They are cited as context: ML weather models are trained on ERA5, and their skill depends on the same reanalysis that Dunyo uses as its baseline, which also means they inherit ERA5's biases (for example in convective rainfall extremes).
+
+## Data provenance on blockchain
+
+Sofia et al. (2020) describe an air-pollution measurement system in which data from a mobile monitoring network are recorded on the Ethereum blockchain (as compressed data or as IPFS content hashes) so that anyone can verify that the measurements were not altered after recording [34].
+
+Dunyo follows the same pattern: it writes only a SHA-256 hash of each WATCH or ALERT report, plus a timestamp and data-source list, to the chain, and keeps the full report off-chain. Anyone holding the report can recompute the hash and check it against the on-chain record; the chain proves integrity and timing, not correctness.

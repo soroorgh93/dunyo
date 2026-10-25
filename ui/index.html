@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dunyo — the planet's health check, sealed on-chain</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230f4c81'/%3E%3Cpath d='M14 28h26a6 6 0 1 0-6-6M14 38h32a6 6 0 1 1-6 6' fill='none' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/ui/app.css">
+</head>
+<body>
+<div id="backdrop" aria-hidden="true"></div>
+<div id="photo-credit" class="photo-credit"></div>
+
+<header class="top">
+  <a class="brand" href="#top" aria-label="Dunyo home">
+    <svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#0f4c81"/><path d="M14 28h26a6 6 0 1 0-6-6M14 38h32a6 6 0 1 1-6 6" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>
+    <span class="name"><b>Dun</b>yo</span>
+  </a>
+  <nav class="jump" id="jump">
+    <a href="#now">Weather now</a><a href="#story" data-need="run">Climate check</a><a href="#desks" data-desk="carbon">Carbon</a><a href="#desks" data-desk="energy">Energy</a><a href="#desks" data-desk="supply">Supply chain</a><a href="#desks" data-desk="sensors">Sensors &amp; data</a><a href="#ledger">Ledger</a>
+  </nav>
+  <div class="top-right">
+    <span class="lang-pick" id="lang-pick" data-noi18n></span>
+    <span class="scene-chip" title="The background photo shows the season and weather of what you are looking at"><span class="dotlive"></span><span id="scene-label">Autumn · Sunny</span></span>
+    <button class="icon-btn" id="open-settings" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <p class="eyebrow">Dunyo · the planet's health check · sealed on-chain</p>
+    <h1 data-i18n-html>How is the planet doing — <em>here</em>?<br>Ask, check, and prove it.</h1>
+    <p class="sub">Dunyo uses real open data and a team of AI agents to explain the weather and climate of any place, track emissions and carbon credits, share solar power between neighbours and follow products from farm to recycling — and every claim is sealed on a blockchain so nobody can fake it.</p>
+
+    <div class="search-card" id="search-card">
+      <div class="sc-row">
+        <div class="field f-place">
+          <label for="place">Where?</label>
+          <div class="input-wrap"><span class="ico">📍</span><input id="place" autocomplete="off" spellcheck="false" placeholder="City or country — try “anta”, “san”, “Ir”" value="Istanbul, Türkiye"></div>
+          <div id="place-list" class="ac" hidden></div>
+        </div>
+        <div class="field f-when">
+          <label for="when">When?</label>
+          <div class="input-wrap"><span class="ico">📅</span>
+            <select id="when">
+              <option value="summer">This summer</option><option value="30">Past 30 days</option><option value="7">Past 7 days</option>
+              <option value="winter">Last winter</option><option value="year">This year so far</option><option value="custom">Pick dates…</option>
+            </select>
+          </div>
+          <div class="custom-dates" id="custom-dates" hidden><input type="date" id="start"> <span>to</span> <input type="date" id="end"></div>
+        </div>
+      </div>
+      <div class="field f-q">
+        <label for="question">What do you want to know? <span class="opt">(optional)</span></label>
+        <div class="input-wrap"><span class="ico">💬</span><input id="question" placeholder="e.g. Was this summer unusually hot?" value="Was this summer unusually hot?"></div>
+      </div>
+      <div class="chips" id="examples">
+        <button data-q="Was it unusually hot?">Was it unusually hot?</button><button data-q="Was there a big storm?">Was there a big storm?</button><button data-q="Was it unusually rainy?">Was it unusually rainy?</button><button data-q="How clean was the air?">How clean was the air?</button><button data-q="Is it getting warmer here?">Is it getting warmer here?</button>
+      </div>
+      <div class="sc-foot">
+        <div class="seg" id="mode" role="tablist"><button data-mode="live" class="active">Live data</button><button data-mode="offline">Demo world (offline)</button></div>
+        <span class="mode-note" id="mode-note">Free open data · no sign-up, no key</span>
+        <button class="go" id="go"><span>Check the climate</span><svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+    <div class="desk-chips">
+      <span>Four tracks, one blockchain:</span>
+      <a href="#desks" data-desk="sensors">🌍 Climate data</a><a href="#desks" data-desk="carbon">🏭 Carbon markets</a><a href="#desks" data-desk="energy">⚡ Energy trading</a><a href="#desks" data-desk="supply">📦 Supply chains</a>
+    </div>
+  </div>
+</section>
+
+<main>
+  <!-- WEATHER NOW -->
+  <section class="block" id="now">
+    <div class="block-head"><h2>Weather now <span class="place-name" id="now-place">in Istanbul</span></h2><span class="badge" id="now-badge">live</span></div>
+    <div class="now-grid">
+      <div class="card now-main">
+        <div class="nm-top">
+          <div><div class="nm-place" id="nm-place">Istanbul</div><div class="muted small" id="nm-time">—</div></div>
+          <div class="seg tiny" id="units"><button data-u="C" class="active">°C</button><button data-u="F">°F</button></div>
+        </div>
+        <div class="nm-cur">
+          <div id="nm-icon" class="nm-icon"></div>
+          <div class="nm-temp" id="nm-temp">—</div>
+          <div class="nm-desc"><div class="nm-text" id="nm-text">Loading…</div><div class="muted" id="nm-hilo"></div></div>
+        </div>
+        <div class="seg small" id="fc-tabs"><button data-t="hourly" class="active">Hourly</button><button data-t="daily">Daily</button><button data-t="monthly">Monthly</button></div>
+        <div id="fc-body" class="fc-body"></div>
+        <div class="nm-brief" id="nm-brief"></div>
+      </div>
+      <div class="tiles">
+        <div class="tile" id="t-wind"></div>
+        <div class="tile" id="t-air"></div>
+        <div class="tile" id="t-hum"></div>
+        <div class="tile" id="t-uv"></div>
+        <div class="tile" id="t-pres"></div>
+        <div class="tile" id="t-sun"></div>
+        <div class="tile map-tile"><canvas id="map-now"></canvas><div class="map-foot" id="map-now-cap">Map</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROGRESS -->
+  <section class="block" id="progress" hidden>
+    <div class="card progress">
+      <div class="pg-head">
+        <div class="pg-orb"><span></span><span></span><span></span></div>
+        <div><h2 id="pg-title">Our AI team is checking…</h2><p class="muted" id="pg-sub">This takes about a minute.</p></div>
+      </div>
+      <div class="pbar"><i id="pbar"></i></div>
+      <ol class="steps" id="steps"></ol>
+      <p class="live-line" id="live-line"></p>
+    </div>
+  </section>
+
+  <!-- THE STORY -->
+  <section class="block" id="story" hidden data-mt>
+    <article class="card story">
+      <div class="story-grid">
+        <div class="story-text">
+          <div class="kicker" id="kicker"></div>
+          <h2 class="headline" id="headline"></h2>
+          <p class="dek" id="dek"></p>
+          <p class="asked" id="asked"></p>
+          <div class="answer" id="answer"></div>
+        </div>
+        <div class="story-side">
+          <div class="map-big"><canvas id="map-story"></canvas></div>
+          <div class="meter-wrap"><div class="meter-title">How unusual was it?</div><div class="meter" id="meter"></div></div>
+        </div>
+      </div>
+      <div class="facts" id="facts"></div>
+      <div class="story-cols">
+        <div><h3>What this means</h3><ul class="notes" id="notes"></ul></div>
+        <div><h3>We also noticed</h3><div class="also" id="also"></div></div>
+      </div>
+      <div class="actions">
+        <a class="btn primary" id="dl-pdf" href="#"><span>⬇ Download the report (PDF)</span><small id="pdf-state">preparing…</small></a>
+        <a class="btn" href="#ask">💬 Ask a follow-up</a>
+        <a class="btn ghost" id="dl-json" href="#">Data (JSON)</a>
+      </div>
+    </article>
+  </section>
+
+  <!-- CHARTS -->
+  <section class="block" id="pictures" hidden data-mt>
+    <div class="block-head"><h2>The story in pictures</h2><span class="muted">Move your mouse over a chart to see each day</span></div>
+    <div class="fcharts" id="fcharts"></div>
+    <div class="two-col">
+      <div class="card space"><h3><span class="gl-wrap">🛰️</span> Seen from space</h3><div class="sat-wrap"><img id="sat-img" alt="Satellite picture"><span class="sat-label" id="sat-label"></span></div><div class="sat-strip" id="sat-strip"></div><p class="explain" id="sat-explain"></p></div>
+      <div class="card newsbox"><h3><span class="gl-wrap">📰</span> In the news</h3><div id="headlines"></div><p class="muted small">News is used only as background — never as proof.</p></div>
+    </div>
+  </section>
+
+  <!-- TRUST -->
+  <section class="block" id="trust" hidden data-mt>
+    <div class="block-head"><h2>Can you trust this?</h2><span class="muted">Three independent safeguards</span></div>
+    <div class="trust-grid">
+      <div class="card tcard"><div class="tico">🔁</div><h3>Two records agree</h3><p id="tr-agree"></p></div>
+      <div class="card tcard"><div class="tico">🕵️</div><h3>A second opinion</h3><p id="tr-critic"></p></div>
+      <div class="card tcard"><div class="tico">🔏</div><h3>A tamper-proof seal</h3><p id="tr-seal"></p>
+        <div class="row"><button class="btn small primary" id="verify">Check the seal</button><button class="btn small" id="tamper">Try to tamper</button></div></div>
+    </div>
+    <div id="verify-out"></div>
+  </section>
+
+  <!-- ASK -->
+  <section class="block" id="ask" hidden>
+    <div class="card chat">
+      <div class="chat-head"><h2>Ask a follow-up</h2><span class="muted small" id="chat-engine"></span></div>
+      <div class="chat-sugg" id="chat-sugg"></div>
+      <div class="chat-log" id="chat-log" data-mt></div>
+      <div class="chat-input"><input id="chat-q" placeholder="Ask anything about this — e.g. How rare was it?"><button class="go small" id="chat-send">Ask</button></div>
+    </div>
+  </section>
+
+  <!-- UNDER THE HOOD -->
+  <section class="block" id="hood" hidden>
+    <details class="card hood" id="hood-details">
+      <summary><span class="hood-title">🔬 Under the hood</span><span class="muted">For experts and judges — every step our agents took, the decision maths, the evidence map and 12 science figures</span></summary>
+      <div class="hood-body">
+        <h3>Every step, in order</h3><div class="trace" id="trace"></div>
+        <h3>How the rating was decided</h3><div class="decision" id="decision"></div>
+        <h3>Evidence map <span class="muted small">(node size = PageRank importance)</span></h3><div id="graph" class="graph-host"></div>
+        <h3>Science figures <span class="muted small" id="fig-state"></span></h3><div class="gallery" id="gallery"></div>
+        <h3>The seal, in detail</h3><div class="receipt" id="receipt"></div><div id="prov"></div>
+      </div>
+    </details>
+  </section>
+
+
+  <!-- FOUR TRACKS -->
+  <section class="tracks-band" id="desks">
+    <div class="tb-inner">
+      <div class="tb-head">
+        <p class="tb-eyebrow">IEEE ClimateChain challenge</p>
+        <h2>Four tracks · one blockchain</h2>
+        <p class="tb-sub" data-i18n-html>Pick a track. Each one runs real open data through AI and seals every claim on ClimateChain — for <b id="desk-place"></b>.</p>
+      </div>
+      <div class="desk-cards" id="desk-cards">
+        <button class="desk-card" data-desk="carbon" data-track="1"><span class="dc-top"><span class="dc-num">1</span><span class="dc-ico">🏭</span></span><span class="dc-track">Track 1 · Carbon markets &amp; emissions</span><b>Emissions you can't fake</b><span class="dc-txt">Real facility emissions (Climate TRACE), AI that catches under-reporting, solar credits checked against real sunshine — no double counting.</span><span class="dc-go">Open track 1 →</span></button>
+        <button class="desk-card" data-desk="energy" data-track="2"><span class="dc-top"><span class="dc-num">2</span><span class="dc-ico">⚡</span></span><span class="dc-track">Track 2 · Renewable energy &amp; trading</span><b>A street that shares its sun</b><span class="dc-txt">Real solar forecast and market prices, AI scenarios, a neighbour-to-neighbour market, hourly certificates and GREEN rewards.</span><span class="dc-go">Open track 2 →</span></button>
+        <button class="desk-card" data-desk="supply" data-track="3"><span class="dc-top"><span class="dc-num">3</span><span class="dc-ico">📦</span></span><span class="dc-track">Track 3 · Sustainable supply chains</span><b>A passport for every product</b><span class="dc-txt">Real products and life-cycle CO₂ (Open Food Facts), signed lifecycle steps, AI fraud checks, recycling credits and deposit refunds.</span><span class="dc-go">Open track 3 →</span></button>
+        <button class="desk-card" data-desk="sensors" data-track="4"><span class="dc-top"><span class="dc-num">4</span><span class="dc-ico">📡</span></span><span class="dc-track">Track 4 · Climate data &amp; monitoring</span><b>Citizen sensors &amp; a fair data market</b><span class="dc-txt">Live citizen air sensors checked by AI, air-pollution regimes found by contrastive learning, and a market that pays sensor owners.</span><span class="dc-go">Open track 4 →</span></button>
+      </div>
+
+      <div class="desk-panel" id="desk-panel" hidden>
+        <div class="dp-ribbon">
+          <span class="dp-num" id="dp-num">1</span>
+          <div class="dp-rtext"><div class="dp-track" id="dp-track"></div><div class="dp-meta"><span class="badge" id="dp-live"></span><span id="dp-ms"></span></div></div>
+          <div class="dp-tabs" id="dp-tabs" role="tablist">
+            <button data-desk="carbon" data-track="1">1 · Carbon</button><button data-desk="energy" data-track="2">2 · Energy</button><button data-desk="supply" data-track="3">3 · Supply chain</button><button data-desk="sensors" data-track="4">4 · Sensors</button>
+          </div>
+          <button class="btn small dp-rerun" id="dp-rerun">↻ Run again</button>
+        </div>
+        <div class="dp-body">
+          <div class="dp-loading" id="dp-loading" hidden><div class="pg-orb"><span></span><span></span><span></span></div><div><b id="dp-load-title">Working…</b><div class="muted small" id="dp-load-sub">Fetching real open data, running the AI and writing to ClimateChain</div></div></div>
+          <div class="dp-error" id="dp-error" hidden></div>
+          <div id="dp-content" hidden data-mt>
+            <div id="dp-notice"></div>
+            <h2 class="dp-title" id="dp-title"></h2>
+            <p class="dek" id="dp-sub"></p>
+            <p class="dp-period" id="dp-period"></p>
+            <div id="dp-controls"></div>
+            <div class="dp-steps" id="dp-steps"></div>
+            <div class="dp-top"><div class="answer" id="dp-summary" data-mt></div><div class="dp-product" id="dp-product"></div></div>
+            <div class="facts" id="dp-kpis" data-mt></div>
+            <div class="fcharts" id="dp-charts"></div>
+            <h3 class="dp-h3">What the AI did</h3>
+            <div class="ai-grid" id="dp-ai" data-mt></div>
+            <div class="two-col dp-chain">
+              <div class="card inner"><h3>🕵️ Try to cheat the system</h3><p class="muted small">Each button sends a real signed transaction. The smart contract or the AI should stop it.</p><div class="cheats" id="dp-actions" data-mt></div><div id="dp-action-out" data-mt></div></div>
+              <div class="card inner" data-nomt><h3>⛓️ On ClimateChain <span class="muted small" id="dp-ntx"></span></h3><div class="txfeed" id="dp-txs"></div></div>
+            </div>
+            <div id="dp-cards" data-nomt></div>
+            <div class="dp-conn" id="dp-conn" data-nomt></div>
+            <p class="muted small" id="dp-sources"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEDGER -->
+  <section class="block" id="ledger">
+    <div class="block-head"><h2>ClimateChain ledger</h2><span class="muted">Every signed transaction from every desk, in one tamper-evident chain</span></div>
+    <div class="card ledger">
+      <div class="lg-stats" id="lg-stats"></div>
+      <div class="row"><button class="btn small primary" id="lg-verify">Verify the whole chain</button><button class="btn small" id="lg-tamper">Try to change an old transaction</button><button class="btn small ghost" id="lg-refresh">↻ Refresh</button></div>
+      <div id="lg-out"></div>
+      <div class="two-col">
+        <div><h3>Latest transactions</h3><div class="txfeed tall" id="lg-txs"></div></div>
+        <div><h3>Who is on the chain</h3><div class="actors" id="lg-actors"></div><p class="muted small">Each actor holds a real Ed25519 key pair; its address is the last 20 bytes of the SHA-256 of its public key. Every transaction is signed, verified, executed by a smart-contract rule and sealed in a block with a Merkle root and a state root.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="recent-wrap">
+    <div class="block-head"><h2>Recent checks</h2></div>
+    <div class="recent" id="recent"><p class="muted">Your checks will appear here.</p></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div><b>Dunyo</b> · the planet's health check, sealed on-chain · built for the IEEE ClimateChain Global Hackathon 2026 · open source (MIT)</div>
+  <div class="muted">Data: Copernicus ERA5 &amp; forecasts via Open-Meteo (CC BY 4.0), NASA POWER, NASA GIBS &amp; EONET, CAMS, NOAA, GFZ, GDELT, Wikimedia, Climate TRACE, Energy-Charts (Fraunhofer ISE), Open Food Facts, Sensor.Community · Map: Natural Earth · Background photos: Wikimedia Commons contributors (free licences, credited bottom-right) · <span id="ai-foot"></span></div>
+</footer>
+
+<div class="drawer" id="drawer" hidden>
+  <div class="drawer-panel">
+    <div class="drawer-head"><h2>Settings</h2><button class="icon-btn" id="close-settings" aria-label="Close">✕</button></div>
+    <h3>AI writer</h3>
+    <p class="muted small" id="ai-status">Checking…</p>
+    <p class="small">Dunyo works fully without any AI service. With a free local model it also writes friendlier explanations (every sentence is fact-checked against the data) and answers any follow-up question.</p>
+    <ol class="small howto"><li>Install <b>Ollama</b> from ollama.com (free, runs on your computer, private).</li><li>In a terminal run: <code>ollama pull llama3.2</code></li><li>Done — Dunyo finds it automatically. No key needed.</li></ol>
+    <details><summary class="small">Use a cloud model instead (optional)</summary>
+      <label>Provider</label>
+      <select id="s-provider"><option value="">— choose —</option><option value="ollama">Ollama (local)</option><option value="groq">Groq (free key)</option><option value="gemini">Google Gemini</option><option value="openai">OpenAI</option><option value="openrouter">OpenRouter</option><option value="custom">Custom</option></select>
+      <label>Base URL</label><input id="s-base"><label>API key</label><input id="s-key" type="password"><label>Model</label><input id="s-model">
+      <div class="row"><button class="btn small primary" id="s-save">Save</button><button class="btn small" id="s-test">Test</button></div>
+    </details>
+    <p class="small" id="s-out"></p>
+    <h3>Blockchain (optional)</h3>
+    <p class="muted small">By default reports are sealed on a local tamper-evident ledger (or an in-process Ethereum chain). To publish on the public Sepolia test network, enter an RPC URL and a <b>test-wallet</b> key — never a real wallet.</p>
+    <label>RPC URL</label><input id="s-rpc"><label>Private key (test wallet only)</label><input id="s-pk" type="password"><label>Contract address</label><input id="s-contract">
+    <div class="row"><button class="btn small" id="s-save2">Save</button></div>
+    <h3>System</h3><div class="small muted" id="sys"></div>
+  </div>
+</div>
+<div class="lightbox" id="lightbox" hidden><img id="lb-img" alt=""><p id="lb-cap"></p></div>
+<div class="toast" id="toast" hidden></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="/ui/vendor/d3-array.min.js"></script>
+<script src="/ui/vendor/d3-geo.min.js"></script>
+<script src="/ui/icons.js"></script>
+<script src="/ui/backdrop.js"></script>
+<script src="/ui/map.js"></script>
+<script src="/ui/charts.js"></script>
+<script src="/ui/i18n.js"></script>
+<script src="/ui/app.js"></script>
+<script src="/ui/desks.js"></script>
+</body>
+</html>

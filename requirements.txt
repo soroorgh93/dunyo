@@ -1,0 +1,22 @@
+# Core (Python 3.10–3.12 recommended)
+numpy>=1.26
+pandas>=2.1
+scipy>=1.11
+scikit-learn>=1.3
+networkx>=3.2
+requests>=2.31
+pillow>=10.0
+matplotlib>=3.8
+reportlab>=4.0          # server-side PDF reports
+cryptography>=41        # Ed25519 signatures for the ClimateChain ledger
+# The web app uses only the Python standard library (no Streamlit / Flask needed).
+# Blockchain: web3 + Solidity compiler wrapper + in-process EVM.
+# NOTE: we deliberately do NOT use web3[tester]: it pulls safe-pysha3, which needs a C++ compiler on Windows.
+# eth-hash falls back to pycryptodome (pure wheel) instead.
+web3>=6.15,<8
+py-solc-x>=2.0
+# Optional extras (Dunyo falls back gracefully without them):
+#   in-process EVM: pip install "eth-tester>=0.13.0b1,<0.14.0b1" "py-evm>=0.12.0b2,<0.13.0b1"
+#   deep models:    pip install torch --index-url https://download.pytorch.org/whl/cpu
+# Tests
+pytest>=7.4

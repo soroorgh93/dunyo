@@ -1,0 +1,75 @@
+# Teleconnections, solar and orbital forcing, space weather and tides
+
+This file covers large-scale climate modes (ENSO, NAO, IOD), astronomical drivers (solar output, Earth-Sun geometry, orbital cycles), geomagnetic storms and lunar tides. Reference numbers in square brackets point to docs/REFERENCES.md. The space-weather section is deliberately conservative about links to surface weather.
+
+## ENSO and the Oceanic Niño Index (ONI)
+
+The El Niño-Southern Oscillation (ENSO) is a coupled ocean-atmosphere oscillation in the tropical Pacific. El Niño is the warm phase (warmer than normal central and eastern equatorial Pacific) and La Niña is the cold phase. ENSO shifts tropical rainfall and influences seasonal temperature and precipitation far from the Pacific.
+
+NOAA's Oceanic Niño Index (ONI) is the 3-month running mean of sea surface temperature (SST) anomalies in the Niño 3.4 region (5°N-5°S, 120°-170°W), computed from the ERSST dataset [8]. A season is warm (El Niño) when the ONI is at or above +0.5 °C and cold (La Niña) when it is at or below -0.5 °C.
+
+For the historical ONI episode table, NOAA CPC classifies a full El Niño or La Niña episode only when the ±0.5 °C threshold is met for a minimum of 5 consecutive overlapping 3-month seasons (for example DJF, JFM, FMA, MAM, AMJ) [8]. A single season beyond the threshold is not an episode.
+
+Important update: since 1 February 2026, NOAA CPC uses the Relative Oceanic Niño Index (RONI) for official ENSO monitoring and prediction [9]. RONI is the 3-month running mean of the relative Niño 3.4 anomaly: the Niño 3.4 anomaly minus the mean tropical (20°N-20°S) SST anomaly, rescaled to the amplitude of the traditional index. The legacy Niño 3.4 and ONI files continue to be updated [9].
+
+RONI was adopted because the traditional ONI depends on a 30-year climatology that struggles to keep pace with long-term warming of tropical SSTs [9]. Dunyo reports ONI because it is a widely understood index, but notes RONI when the two disagree, and treats ENSO as seasonal context, never as the cause of a single day's anomaly.
+
+## North Atlantic Oscillation (NAO)
+
+The NAO index measures the sea-level pressure difference between the subtropical (Azores) high and the subpolar (Icelandic) low. A positive NAO means a stronger pressure gradient and stronger westerlies across the North Atlantic; it is most influential in winter.
+
+A positive winter NAO tends to bring mild, wet conditions to northern Europe and Scandinavia, drier conditions to southern and central Europe, and mild winters to the eastern United States. A negative NAO tends toward the reverse pattern, including more frequent cold-air outbreaks in northern Europe and the eastern US.
+
+Dunyo uses the NAO only as background context for European and North Atlantic anomalies at weekly to seasonal scales. The NAO is a description of circulation, not an independent physical cause that can be "blamed" for one event.
+
+## Indian Ocean Dipole (IOD)
+
+The Indian Ocean Dipole is an east-west SST gradient mode of the tropical Indian Ocean, first described in the late 1990s. It is tracked by the Dipole Mode Index (DMI), the difference between western and south-eastern tropical Indian Ocean SST anomalies.
+
+A positive IOD (warmer west, cooler east) is associated with reduced rainfall over parts of Indonesia and southern Australia and enhanced rainfall over East Africa; a negative IOD tends to the reverse. The IOD typically develops in austral winter and decays by early austral summer.
+
+## Solar forcing and its limits
+
+Total solar irradiance (TSI) at Earth's mean distance is about 1361 W/m². Over the 11-year solar cycle TSI varies by only about 0.1 percent; solar ultraviolet varies proportionally much more and affects stratospheric ozone and temperature, with possible dynamical coupling to the surface [10].
+
+Gray et al. (2010) review solar influences on climate and find that solar effects are detectable but modest at the surface, while mechanisms involving cosmic rays and clouds remain uncertain and contested [10]. Dunyo does not attribute a daily or weekly weather anomaly to the solar cycle.
+
+## Earth-Sun geometry and top-of-atmosphere insolation
+
+Daily mean top-of-atmosphere (TOA) insolation Q at latitude φ is Q = (S0/π) × (d̄/d)² × (h0 sinφ sinδ + cosφ cosδ sin h0), where S0 is the solar constant (about 1361 W/m²), d̄/d is the ratio of mean to actual Earth-Sun distance, δ is the solar declination and h0 is the sunrise/sunset hour angle in radians.
+
+The sunrise hour angle follows cos h0 = -tanφ tanδ. If -tanφ tanδ is at or above 1 the Sun never rises (polar night, Q = 0). If it is at or below -1 the Sun never sets (polar day), h0 = π and Q = S0 (d̄/d)² sinφ sinδ.
+
+Solar declination ranges from about +23.44° at the June solstice to -23.44° at the December solstice. A common engineering approximation is δ ≈ 23.44° × sin(360° × (284 + n)/365), where n is the day of year; the distance factor is approximately (d̄/d)² ≈ 1 + 0.033 cos(360° × n/365).
+
+Earth reaches perihelion in early January and aphelion in early July. With orbital eccentricity near 0.0167, TOA irradiance at perihelion is about 6.9 percent higher than at aphelion. This is why Dunyo's insolation baseline uses the actual Earth-Sun distance, not a constant.
+
+Dunyo uses the TOA insolation formula to separate astronomically expected seasonal changes from genuine weather anomalies. Insolation is computed exactly from date and latitude, so it is a deterministic baseline, not a cause of year-to-year anomalies on the same calendar day.
+
+## Milankovitch orbital cycles
+
+Milankovitch cycles are slow changes in Earth's orbit and axis that alter the seasonal and latitudinal distribution of insolation: eccentricity (dominant periods near 100,000 and 405,000 years), obliquity (axial tilt between about 22.1° and 24.5°, period about 41,000 years) and climatic precession (periods about 19,000 to 23,000 years).
+
+Orbital cycles pace glacial-interglacial cycles over tens of thousands of years. They are effectively constant over the decades Dunyo analyses, and must never be cited as an explanation for a present-day weather anomaly.
+
+## Geomagnetic storms and the NOAA G-scale
+
+The Kp index is a 3-hourly planetary index of geomagnetic disturbance on a 0 to 9 scale, derived from a network of ground magnetometers; GFZ Potsdam is its official producer. The NOAA Space Weather Prediction Center maps Kp to the geomagnetic storm G-scale [11].
+
+NOAA G-scale: G1 Minor at Kp = 5; G2 Moderate at Kp = 6; G3 Strong at Kp = 7; G4 Severe at Kp = 8 (including 9-); G5 Extreme at Kp = 9 [11]. Kp below 5 is not a geomagnetic storm on this scale.
+
+Effects by level [11]: G1 can cause weak power-grid fluctuations and aurora at high latitudes; G2 can trigger voltage alarms in high-latitude grids; G3 may require voltage corrections and intermittently degrades satellite navigation and HF radio; G4 can cause widespread voltage-control problems and hours of degraded satellite navigation; G5 can cause grid collapse or transformer damage, HF radio blackouts and days of degraded satellite navigation.
+
+The real, well-documented impacts of geomagnetic storms are on technology: geomagnetically induced currents in power grids and pipelines, GNSS (GPS) positioning errors from ionospheric disturbance, HF radio blackouts, satellite drag and charging, and aurora visible at unusually low latitudes [11].
+
+Scientific honesty rule: there is no established mechanism by which geomagnetic storms cause heatwaves, storms, heavy rain or other surface weather on daily timescales, and proposed links are weak and contested [10]. Dunyo never attributes a weather anomaly to geomagnetic activity; it reports geomagnetic storms only as a separate infrastructure hazard.
+
+## Perigean spring tides and "king tides"
+
+A perigean spring tide occurs when the Moon is new or full and near perigee (its closest point to Earth). NOAA notes that these occur several times per year (6 to 8) and that high tides can then be noticeably higher than at apogean spring tides, by more than a foot in some places [12].
+
+"King tide" is a popular, non-technical name for the highest predicted tides of the year, which are often perigean spring tides. On their own they can cause minor "nuisance" high-tide flooding in low-lying coastal areas, especially as sea level rises [12].
+
+Major coastal flooding usually requires a storm: strong onshore winds and low pressure raise water levels (storm surge). If a storm coincides with a perigean spring tide, flooding can be much worse [12]. As a rule of thumb, sea level rises by about 1 cm for each 1 hPa fall in atmospheric pressure (inverse barometer effect).
+
+Dunyo cross-checks coastal wind and pressure anomalies, especially bomb cyclones, against the lunar phase and perigee dates. A coastal storm alert is upgraded when it coincides with a perigean spring tide window, but the tide itself is predictable and is never reported as an "anomaly".

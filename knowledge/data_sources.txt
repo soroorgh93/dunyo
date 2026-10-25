@@ -1,0 +1,79 @@
+# Data sources: what they measure, endpoints and terms
+
+This file lists the free data services Dunyo uses, what each one measures, the exact API base URL, and the licence or terms of use. All endpoints below were checked against the provider's documentation in October 2026. Provider documentation pages are listed in the "Data service documentation" section of docs/REFERENCES.md.
+
+## Open-Meteo Historical Weather API (ERA5-based)
+
+Base URL: https://archive-api.open-meteo.com/v1/archive. Parameters include latitude, longitude, start_date and end_date (YYYY-MM-DD), daily or hourly variable lists, timezone and optionally models. Documentation: https://open-meteo.com/en/docs/historical-weather-api.
+
+Open-Meteo historical data come from ECMWF and Copernicus reanalyses: ERA5 (0.25°, about 25 km, hourly, 1940 to present, about 5-day delay), ERA5-Land (0.1°, about 11 km, 1950 to present), ECMWF IFS analysis (9 km, 2017 to present) and CERRA (5 km, Europe only, 1985 to June 2021). The default "best match" blends IFS, ERA5 and ERA5-Land.
+
+For multi-decade climatologies and percentile baselines, Open-Meteo recommends requesting ERA5 or ERA5-Land alone for consistency, because the best-match blend changes model over time. Dunyo requests ERA5 explicitly when computing base-period percentiles.
+
+Useful daily variables: temperature_2m_max, temperature_2m_min, precipitation_sum, rain_sum, snowfall_sum, wind_speed_10m_max, wind_gusts_10m_max, sunshine_duration, shortwave_radiation_sum and et0_fao_evapotranspiration. Hourly variables include relative humidity, pressure, cloud cover and wind direction.
+
+Open-Meteo licence and terms: API data are licensed CC BY 4.0, and displays must credit Open-Meteo, for example "Weather data by Open-Meteo.com" with a link. The free API is for non-commercial use, with limits of fewer than 10,000 calls per day, 5,000 per hour and 600 per minute; commercial use needs a paid API key. ERA5 use should also acknowledge the Copernicus Climate Change Service.
+
+## Open-Meteo Air Quality API (CAMS)
+
+Base URL: https://air-quality-api.open-meteo.com/v1/air-quality, for example ?latitude=52.52&longitude=13.41&hourly=pm10,pm2_5. Documentation: https://open-meteo.com/en/docs/air-quality-api. The same CC BY 4.0 licence and free-tier terms as other Open-Meteo APIs apply.
+
+The air-quality data come from the Copernicus Atmosphere Monitoring Service (CAMS): the CAMS European air-quality forecast (0.1°, hourly, from October 2023) and reanalysis (0.1°, from 2013), and the CAMS global atmospheric composition forecast (0.4°, 3-hourly, from August 2022). European and global domains are separate models and may disagree.
+
+Air-quality variables: pm10, pm2_5, carbon_monoxide, nitrogen_dioxide, sulphur_dioxide, ozone, aerosol_optical_depth, dust, uv_index, plus european_aqi and us_aqi composite indices. Up to 92 past days (past_days) and up to 7 forecast days are available, or a custom start_date and end_date.
+
+## NASA POWER daily point API
+
+Base URL: https://power.larc.nasa.gov/api/temporal/daily/point. Example: ?start=20240101&end=20240131&latitude=37.0&longitude=-76.0&community=re&parameters=ALLSKY_SFC_SW_DWN,T2M&format=json. Dates are YYYYMMDD; community is ag, re or sb; up to 20 parameters per request; no authentication.
+
+NASA POWER meteorology comes from NASA GMAO MERRA-2 reanalysis (from 1981, at 0.5° × 0.625°) with GEOS FP-IT filling recent days; solar parameters come from GEWEX SRB (1984-2000) and CERES products (from 2001), at 1° × 1°. Example parameters: T2M, RH2M, PRECTOTCORR (bias-corrected precipitation), ALLSKY_SFC_SW_DWN; the parameter dictionary lists over 300 parameters.
+
+NASA POWER data are provided under CC BY 4.0, and NASA asks users to follow its referencing guidance. Dunyo uses POWER as an independent second estimate to compare with ERA5, which supports inverse-variance fusion and detection of single-dataset artefacts.
+
+## NOAA ONI and RONI (ENSO indices)
+
+The official NOAA CPC ONI table (cold and warm episodes by season) is at https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php, and NOAA PSL provides an ONI time series at https://psl.noaa.gov/data/timeseries/month/ONI/. Monthly Niño-region SSTs and anomalies are at https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices.
+
+Since 1 February 2026, NOAA CPC uses the Relative Oceanic Niño Index (RONI) for official ENSO monitoring; RONI is documented at https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/roni/announcement.php. The legacy ONI continues to be updated, and CPC has introduced ERSST version 6 based tables alongside the ERSST.v5 ones.
+
+ENSO indices are monthly, seasonal-scale context. Dunyo caches them once per month and never uses them to explain a single day's anomaly on their own.
+
+## GFZ Potsdam Kp index API
+
+Base URL: https://kp.gfz.de/app/json/ with query parameters start and end in ISO 8601 UTC (YYYY-MM-DDTHH:MM:SSZ), index (Kp, ap, Ap, Cp, C9, Hp30, Hp60 and others) and optional status=def for definitive values only. Example: https://kp.gfz.de/app/json/?start=2024-05-10T00:00:00Z&end=2024-05-12T23:59:59Z&index=Kp.
+
+Kp is the 3-hourly planetary geomagnetic index, available as definitive values since 1932, with values from 0 to 9 in thirds. JSON responses contain metadata, datetime (start of each 3-hour interval), the index values, and a status field marking values as "def" (definitive) or "pre" (preliminary).
+
+GFZ Kp data are licensed CC BY 4.0. GFZ asks users to cite Matzka et al. (2021), "The geomagnetic Kp index and derived indices of geomagnetic activity", Space Weather. Dunyo maps Kp to the NOAA G-scale (Kp 5 = G1 up to Kp 9 = G5).
+
+## NASA EONET v3 (natural events)
+
+Base URL: https://eonet.gsfc.nasa.gov/api/v3/events, with a GeoJSON variant at https://eonet.gsfc.nasa.gov/api/v3/events/geojson. Query parameters: status (open, closed, all), days, category, bbox (min lon, max lat, max lon, min lat), start and end (YYYY-MM-DD), limit, source and magnitude filters.
+
+EONET (Earth Observatory Natural Event Tracker) is a curated metadata catalogue of natural events such as wildfires, severe storms, volcanoes, floods, dust and haze, and sea and lake ice. The category list is at https://eonet.gsfc.nasa.gov/api/v3/categories (examples: wildfires, severeStorms, landslides).
+
+NASA states that EONET is intended for visualization and general reference and should not be treated as an authoritative source of precise event locations or timing. Dunyo uses EONET as an evidence-graph node that links a local anomaly to a known large-scale event, not as a measurement.
+
+## NASA GIBS WMS (satellite imagery)
+
+WMS endpoint (geographic projection): https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi, supporting WMS 1.1.1 and 1.3.0 (GetCapabilities, GetMap). A tiled WMTS service is at https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/. GIBS also serves EPSG:3857, EPSG:3413 (Arctic) and EPSG:3031 (Antarctic) projections.
+
+True-colour layers: MODIS_Terra_CorrectedReflectance_TrueColor, MODIS_Aqua_CorrectedReflectance_TrueColor and VIIRS_SNPP_CorrectedReflectance_TrueColor. A GetMap request adds LAYERS, CRS=EPSG:4326, BBOX, WIDTH, HEIGHT, FORMAT=image/jpeg and TIME=YYYY-MM-DD; in WMS 1.3.0 with EPSG:4326 the BBOX axis order is latitude then longitude.
+
+Dunyo uses GIBS imagery as visual evidence of cloud, smoke, dust, snow or flood extent attached to reports. Imagery is not a quantitative measurement, and clouds frequently hide the surface. Credit NASA GIBS and the instrument (MODIS or VIIRS) when showing images.
+
+## GDELT DOC 2.0 API (news volume and tone)
+
+Base URL: https://api.gdeltproject.org/api/v2/doc/doc with query, mode, format and time parameters. Modes include artlist (article list, up to 250 records), timelinevol (coverage volume as a share of all monitored coverage), timelinevolraw (article counts), timelinetone (average tone), timelinelang, timelinesourcecountry and tonechart. Formats include json, csv and html.
+
+GDELT time parameters: timespan (for example 24h, 7d, 3m) or startdatetime and enddatetime in YYYYMMDDHHMMSS. The DOC 2.0 launch post describes a rolling last-3-months search window, and a May 2018 GDELT post announced searching back to 1 January 2017; client libraries still describe 3 months as the officially supported window.
+
+GDELT tone runs from -100 (extremely negative) to +100 (extremely positive), with most articles between about -20 and +20. Dunyo uses only aggregate volume and tone for a place and hazard keyword, never individual articles as evidence, and never to raise an alert on its own.
+
+## Wikimedia pageviews REST API
+
+Per-article endpoint: https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/{project}/{access}/{agent}/{article}/{granularity}/{start}/{end}, for example .../per-article/en.wikipedia.org/all-access/user/Heat_wave/daily/20240101/20240131. Dates are YYYYMMDD (or YYYYMMDDHH) and granularity is daily or monthly.
+
+Access values are all-access, desktop, mobile-app and mobile-web; agent values filter human users from crawlers (use user for human traffic). Wikimedia asks clients to send a meaningful User-Agent header with contact information (an email address or project URL).
+
+Pageview spikes for articles such as "Heat wave" or a named storm measure public attention, not physical conditions. Dunyo uses them only as aggregate, untrusted corroboration of impact or awareness, never as primary evidence.

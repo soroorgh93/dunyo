@@ -1,0 +1,10 @@
+.env
+venv/
+.venv/
+__pycache__/
+*.pyc
+runs/
+.pytest_cache/
+*.log
+photos/*
+!photos/.gitkeep

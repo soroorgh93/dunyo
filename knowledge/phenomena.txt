@@ -1,0 +1,89 @@
+# Phenomena: operational definitions and thresholds
+
+This file gives Dunyo operational definitions for the weather and climate phenomena it investigates. Reference numbers in square brackets point to docs/REFERENCES.md. Where a threshold is a Dunyo convention rather than an official standard, the text says so explicitly.
+
+## ETCCDI temperature indices
+
+The ETCCDI (Expert Team on Climate Change Detection and Indices) core indices are computed from daily maximum temperature TX, daily minimum temperature TN and daily precipitation RR. Percentile thresholds are calendar-day percentiles computed with a 5-day centred window over the base period 1961-1990 in the official definitions [1]. Dunyo may use a more recent 30-year base period but must state which base period it used.
+
+TX90p is the percentage of days when daily maximum temperature TX exceeds the calendar-day 90th percentile of TX for the base period (5-day centred window) [1]. A high TX90p for a month or season indicates frequent warm days.
+
+TN10p is the percentage of days when daily minimum temperature TN falls below the calendar-day 10th percentile of TN for the base period [1]. A high TN10p indicates frequent cold nights.
+
+WSDI, the warm spell duration index, is the annual count of days that belong to runs of at least 6 consecutive days with TX above the calendar-day 90th percentile [1]. Runs shorter than 6 days do not count toward WSDI.
+
+CSDI, the cold spell duration index, is the annual count of days that belong to runs of at least 6 consecutive days with TN below the calendar-day 10th percentile [1]. It is the cold-side counterpart of WSDI.
+
+SU (summer days) is the annual count of days with TX above 25 °C, and TR (tropical nights) is the annual count of days with TN above 20 °C [1]. These are fixed absolute thresholds, so they are not comparable across very different climates.
+
+DTR, the daily temperature range, is the monthly mean of the difference TX minus TN [1]. A sharply reduced DTR often accompanies persistent cloud cover or humid air; an enlarged DTR often accompanies clear, dry conditions.
+
+## ETCCDI precipitation indices
+
+Rx1day is the maximum 1-day precipitation amount in the period, and Rx5day is the maximum precipitation total over any 5 consecutive days in the period (monthly or annual) [1]. Rx1day captures short intense events; Rx5day captures multi-day flood-producing rain.
+
+R95p (officially R95pTOT) is the annual total precipitation falling on days when RR exceeds the 95th percentile of wet-day precipitation, where wet days have RR of at least 1.0 mm and the percentile is taken from the 1961-1990 wet days [1]. R99p (R99pTOT) is the same quantity with the 99th percentile.
+
+CDD is the maximum number of consecutive days with RR below 1 mm (the longest dry spell), and CWD is the maximum number of consecutive days with RR of at least 1 mm (the longest wet spell) [1]. Both are counted within the analysis period.
+
+## Heatwave definitions and WMO guidance
+
+The WMO Guidelines on the definition and characterization of extreme weather and climate events (WMO-No. 1310, 2023) define a heatwave as a period of marked and unusually hot weather persisting for at least two consecutive days [2]. The guidelines do not prescribe one universal percentile; they recommend indices based on local climatological conditions using TX, TN or combined variables.
+
+A common research and operational practice is to flag a heatwave when TX exceeds the calendar-day 90th percentile on at least 3 consecutive days, as in the CTX90pct-style definitions examined by Perkins and Alexander (2013) [3]. Dunyo uses this 3-day, 90th-percentile rule as its default heatwave detector, and reports that the WMO minimum duration is 2 days.
+
+Hot nights matter for health because the body cannot recover when TN stays high. Dunyo therefore checks TN against its own calendar-day 90th percentile alongside TX, and reports heatwaves where both TX and TN exceed thresholds as higher-impact events [3].
+
+## Explosive cyclogenesis ("bomb" cyclones)
+
+Sanders and Gyakum (1980) defined a meteorological "bomb" as an extratropical cyclone whose central pressure falls by at least 24 hPa in 24 hours at 60° latitude, with the threshold scaled by sin(latitude)/sin(60°) at other latitudes [4]. A deepening rate equal to the threshold is called 1 bergeron.
+
+Worked thresholds from the Sanders and Gyakum formula: about 24 hPa per 24 h at 60°, 22.7 hPa at 55°, 19.6 hPa at 45°, 17.8 hPa at 40° and 13.9 hPa at 30° latitude [4]. Dunyo computes the normalized deepening rate as (pressure fall in 24 h) × sin(60°)/sin(latitude) and flags a bomb when it is at least 1 bergeron.
+
+Point stations only approximate a cyclone's central pressure. A rapid surface pressure fall at one station (for example more than 10 hPa in 12 h) is a screening signal; confirming a bomb requires tracking the low-pressure centre in gridded data such as ERA5 [4].
+
+## Föhn and downslope warming
+
+Föhn (foehn) is a warm, dry, downslope wind on the lee side of a mountain range; the air warms by adiabatic compression as it descends. The classic surface signature is an abrupt temperature rise, a sharp fall in relative humidity and gusty winds blowing from the direction of the ridge.
+
+Dunyo convention (not an official standard): flag a possible föhn event when temperature rises by at least 5 °C within 3 hours while relative humidity falls by at least 20 percentage points and wind gusts increase, with wind direction from the mountain barrier. Föhn can produce record winter warmth and rapid snowmelt, and raises wildfire danger in dry seasons.
+
+Föhn anomalies must not be misread as a heatwave. A föhn spike is short-lived, wind-driven and local, whereas a heatwave is a multi-day, regional, large-scale event. The agent must check wind speed, wind direction and humidity before labelling a sudden warm spike.
+
+## Atmospheric stagnation, inversions and air pollution
+
+Atmospheric stagnation is a period of weak winds, no precipitation and often a temperature inversion, during which pollutants accumulate near the ground. Wang and Angell (1999) built the NOAA US stagnation climatology using sea-level geostrophic wind below 8 m/s for at least 4 days, 500 hPa wind below 13 m/s, and no precipitation (even a trace) [5].
+
+A widely used daily air stagnation index treats a day as stagnant when the 10 m wind is below 3.2 m/s, the 500 hPa wind is below 13 m/s and there is no precipitation, with 4 or more consecutive stagnant days forming a stagnation case; this lineage traces back to Wang and Angell (1999) [5]. Dunyo applies this daily index with ERA5-based winds.
+
+A temperature inversion (temperature increasing with height) suppresses vertical mixing and traps emissions within a shallow boundary layer. Winter inversions over valleys and basins, often after clear calm nights, are a typical cause of PM2.5 and PM10 episodes.
+
+## Wind storms and gust thresholds
+
+The Beaufort scale classifies 10-minute mean wind speed, not gusts. Per the Met Office table, Force 8 (gale) is 34-40 knots (about 63-74 km/h), Force 9 (severe gale) is 41-47 knots (about 76-87 km/h), Force 10 (storm) is 48-55 knots (about 89-102 km/h), Force 11 (violent storm) is 56-63 knots (about 104-117 km/h), and Force 12 (hurricane force) is 64 knots or more (about 118 km/h or more) [6].
+
+Dunyo treats gusts of about 90 km/h or more as potentially damaging (falling trees, roof damage, disruption of transport). This value matches the lower bound of Beaufort Force 10 [6], but it is a Dunyo convention: national services use their own warning thresholds, which must take precedence where available.
+
+Gusts commonly exceed the mean wind by a large factor over land (rule-of-thumb gust factors of roughly 1.3 to 1.6, higher in rough terrain or convection; Dunyo heuristic, not a standard). The agent must say whether a value is a mean wind or a gust, and in which units, before comparing it with any threshold.
+
+## Dry spells, drought and SPI
+
+The Standardized Precipitation Index (SPI), introduced by McKee, Doesken and Kleist (1993), converts precipitation totals over an accumulation window (typically 1 to 24 months) into a standard normal variable after fitting a probability distribution [7]. SPI-3 serves short-term or agricultural monitoring and SPI-12 or longer serves hydrological drought.
+
+SPI categories: 2.0 and above extremely wet; 1.5 to 1.99 very wet; 1.0 to 1.49 moderately wet; -0.99 to 0.99 near normal; -1.0 to -1.49 moderately dry; -1.5 to -1.99 severely dry; -2.0 and below extremely dry [7]. A drought event is often taken to begin when SPI reaches -1.0 or less and to end when SPI returns to positive values.
+
+Short dry spells are measured with the ETCCDI CDD index (consecutive days with RR below 1 mm) [1]. A dry spell combined with heat raises wildfire and crop-stress risk even if the multi-month SPI has not yet reached drought levels.
+
+## Cloud-cover anomalies
+
+Cloud-cover anomalies are departures of total cloud cover (percent, from reanalysis or satellite products) from the calendar-day or monthly climatology. Persistent overcast suppresses daytime maximum temperature and reduces DTR; clear skies enhance daytime heating and night-time radiative cooling.
+
+Clear, calm winter nights favour surface-based inversions, frost and fog, linking cloud anomalies to stagnation episodes. Dunyo checks cloud cover when explaining temperature anomalies, and uses NASA GIBS true-colour imagery as visual evidence rather than as a measurement.
+
+## Compound events
+
+Compound events are combinations of multiple drivers or hazards, occurring together or in sequence, that produce larger impacts than any single hazard alone; Zscheischler et al. (2018) argue that risk assessments which treat hazards in isolation can underestimate risk [35]. Examples are concurrent heat and drought, and wind combined with heavy rain.
+
+Hot-and-dry compound events combine a heatwave (for example the 3-day TX90p rule) with a dry spell or negative SPI. Soil-moisture deficits amplify surface heating, so hot and dry conditions tend to reinforce each other and increase wildfire and crop-failure risk.
+
+Wind-and-rain compound events typically occur with extratropical cyclones, including explosive "bomb" cyclones [4]. Dunyo flags a wind-and-rain compound event when damaging gusts (about 90 km/h or more) coincide within 24 hours with daily precipitation above the local 95th percentile; this is a Dunyo convention.
